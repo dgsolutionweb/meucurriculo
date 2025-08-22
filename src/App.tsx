@@ -22,7 +22,8 @@ const initialData: ResumeData = {
   experience: [],
   education: [],
   skills: [],
-  languages: []
+  languages: [],
+  theme: 'classic'
 };
 
 function App() {
@@ -38,6 +39,13 @@ function App() {
   const handleGeneratePDF = async () => {
     setIsGeneratingPDF(true);
     try {
+      // Se não estiver na aba preview, mudar para ela primeiro
+      if (activeTab !== 'preview') {
+        setActiveTab('preview');
+        // Aguardar um momento para o DOM ser atualizado
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+      
       const result = await generatePDF('resume-preview', 'meu-curriculo.pdf');
       if (!result.success) {
         alert('Erro ao gerar PDF. Tente novamente.');
@@ -135,7 +143,7 @@ function App() {
             </div>
             
             <div className="w-full overflow-x-auto">
-              <div className="min-w-[800px] mx-auto">
+              <div className="w-full max-w-4xl mx-auto">
                 <ResumePreview data={resumeData} />
               </div>
             </div>

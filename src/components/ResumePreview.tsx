@@ -1,5 +1,6 @@
 import React from 'react';
 import type { ResumeData } from '../types/resume';
+import { getThemeById } from '../types/resume';
 import { Mail, Phone, MapPin, Globe, Linkedin } from 'lucide-react';
 
 interface ResumePreviewProps {
@@ -7,8 +8,9 @@ interface ResumePreviewProps {
 }
 
 const ResumePreview: React.FC<ResumePreviewProps> = ({ data }) => {
-  const { personalInfo, experience, education, skills, languages } = data;
-
+  const { personalInfo, experience, education, skills, languages, theme: themeId } = data;
+  const theme = getThemeById(themeId || 'classic');
+  
   const formatDate = (date: string) => {
     if (!date) return '';
     const [year, month] = date.split('-');
@@ -28,16 +30,38 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data }) => {
             className={`w-2.5 h-2.5 print:w-2 print:h-2 rounded-full ${
               i <= level ? 'bg-primary-600' : 'bg-gray-200'
             }`}
+            style={{
+              backgroundColor: i <= level ? theme.colors.primary : '#e5e7eb'
+            }}
           />
         ))}
       </div>
     );
   };
 
+  const headingFont = theme.fonts.heading === 'serif' ? 'font-serif' : 'font-sans';
+  const bodyFont = theme.fonts.body === 'serif' ? 'font-serif' : 'font-sans';
+
   return (
-    <div id="resume-preview" className="bg-white shadow-lg rounded-lg w-full max-w-4xl mx-auto p-6 print:shadow-none print:rounded-none pdf-optimized" style={{ pageBreakInside: 'avoid' }}>
+    <div 
+      id="resume-preview" 
+      className={`bg-white shadow-lg rounded-lg w-full mx-auto p-4 sm:p-6 print:shadow-none print:rounded-none pdf-optimized ${bodyFont}`} 
+      style={{ 
+        pageBreakInside: 'avoid',
+        fontFamily: theme.fonts.body === 'serif' ? 'Georgia, serif' : 'system-ui, sans-serif',
+        color: theme.colors.text,
+        maxWidth: '100%'
+      }}
+    >
       {/* Header */}
-      <div className="border-b-2 border-primary-600 pb-4 mb-6 print:pb-3 print:mb-3" style={{ pageBreakAfter: 'avoid' }}>
+      <div 
+        className="border-b-2 pb-4 mb-6 print:pb-3 print:mb-3" 
+        style={{ 
+          pageBreakAfter: 'avoid',
+          borderBottomColor: theme.colors.primary,
+          borderBottomWidth: '2px'
+        }}
+      >
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 print:gap-3">
           {personalInfo.photo && (
             <div className="flex-shrink-0 text-center sm:text-left">
@@ -50,7 +74,13 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data }) => {
           )}
           
           <div className="flex-1 min-w-0 w-full text-center sm:text-left">
-            <h1 className="text-2xl sm:text-3xl print:text-xl font-bold text-gray-800 mb-2 print:mb-1 break-words">
+            <h1 
+              className={`text-2xl sm:text-3xl print:text-xl font-bold mb-2 print:mb-1 break-words ${headingFont}`}
+              style={{
+                color: theme.colors.primary,
+                fontFamily: theme.fonts.heading === 'serif' ? 'Georgia, serif' : 'system-ui, sans-serif'
+              }}
+            >
               {personalInfo.fullName || 'Seu Nome'}
             </h1>
             
@@ -105,7 +135,14 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data }) => {
       {/* Experience */}
       {experience.length > 0 && (
         <section className="mb-6 print:mb-4" style={{ pageBreakInside: 'avoid' }}>
-          <h2 className="text-xl print:text-base font-bold text-gray-800 mb-4 print:mb-2 border-l-4 border-primary-600 pl-3 print:pl-2">
+          <h2 
+            className={`text-xl print:text-base font-bold mb-4 print:mb-2 border-l-4 pl-3 print:pl-2 ${headingFont}`}
+            style={{
+              color: theme.colors.text,
+              borderLeftColor: theme.colors.primary,
+              fontFamily: theme.fonts.heading === 'serif' ? 'Georgia, serif' : 'system-ui, sans-serif'
+            }}
+          >
             EXPERIÊNCIA PROFISSIONAL
           </h2>
           
@@ -114,8 +151,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data }) => {
               <div key={exp.id} className="border-l-2 border-gray-200 pl-4 print:pl-2" style={{ pageBreakInside: 'avoid' }}>
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1 mb-2 print:mb-1">
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-800 text-base print:text-sm break-words">{exp.position}</h3>
-                    <p className="text-primary-600 font-medium text-sm print:text-xs break-words">{exp.company}</p>
+                    <h3 className="font-semibold text-base print:text-sm break-words" style={{ color: theme.colors.text }}>{exp.position}</h3>
+                    <p className="font-medium text-sm print:text-xs break-words" style={{ color: theme.colors.primary }}>{exp.company}</p>
                   </div>
                   <div className="text-sm print:text-xs text-gray-500 whitespace-nowrap">
                     {formatDate(exp.startDate)} - {exp.current ? 'Atual' : formatDate(exp.endDate)}
@@ -135,7 +172,14 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data }) => {
       {/* Education */}
       {education.length > 0 && (
         <section className="mb-6 print:mb-4" style={{ pageBreakInside: 'avoid' }}>
-          <h2 className="text-xl print:text-base font-bold text-gray-800 mb-4 print:mb-2 border-l-4 border-primary-600 pl-3 print:pl-2">
+          <h2 
+            className={`text-xl print:text-base font-bold mb-4 print:mb-2 border-l-4 pl-3 print:pl-2 ${headingFont}`}
+            style={{
+              color: theme.colors.text,
+              borderLeftColor: theme.colors.primary,
+              fontFamily: theme.fonts.heading === 'serif' ? 'Georgia, serif' : 'system-ui, sans-serif'
+            }}
+          >
             EDUCAÇÃO
           </h2>
           
@@ -144,10 +188,10 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data }) => {
               <div key={edu.id} className="border-l-2 border-gray-200 pl-4 print:pl-2" style={{ pageBreakInside: 'avoid' }}>
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-800 text-base print:text-sm break-words">
+                    <h3 className="font-semibold text-base print:text-sm break-words" style={{ color: theme.colors.text }}>
                       {edu.degree} em {edu.field}
                     </h3>
-                    <p className="text-primary-600 text-sm print:text-xs break-words">{edu.institution}</p>
+                    <p className="text-sm print:text-xs break-words" style={{ color: theme.colors.primary }}>{edu.institution}</p>
                   </div>
                   <div className="text-sm print:text-xs text-gray-500 whitespace-nowrap">
                     {edu.endDate}
@@ -164,7 +208,14 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data }) => {
         {/* Skills */}
         {skills.length > 0 && (
           <section style={{ pageBreakInside: 'avoid' }}>
-            <h2 className="text-xl print:text-base font-bold text-gray-800 mb-4 print:mb-2 border-l-4 border-primary-600 pl-3 print:pl-2">
+            <h2 
+              className={`text-xl print:text-base font-bold mb-4 print:mb-2 border-l-4 pl-3 print:pl-2 ${headingFont}`}
+              style={{
+                color: theme.colors.text,
+                borderLeftColor: theme.colors.primary,
+                fontFamily: theme.fonts.heading === 'serif' ? 'Georgia, serif' : 'system-ui, sans-serif'
+              }}
+            >
               HABILIDADES
             </h2>
             
@@ -182,7 +233,14 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data }) => {
         {/* Languages */}
         {languages.length > 0 && (
           <section style={{ pageBreakInside: 'avoid' }}>
-            <h2 className="text-xl print:text-base font-bold text-gray-800 mb-4 print:mb-2 border-l-4 border-primary-600 pl-3 print:pl-2">
+            <h2 
+              className={`text-xl print:text-base font-bold mb-4 print:mb-2 border-l-4 pl-3 print:pl-2 ${headingFont}`}
+              style={{
+                color: theme.colors.text,
+                borderLeftColor: theme.colors.primary,
+                fontFamily: theme.fonts.heading === 'serif' ? 'Georgia, serif' : 'system-ui, sans-serif'
+              }}
+            >
               IDIOMAS
             </h2>
             

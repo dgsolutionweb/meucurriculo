@@ -5,9 +5,26 @@ import html2canvas from 'html2canvas';
 export const usePDFGenerator = () => {
   const generatePDF = useCallback(async (elementId: string, filename: string = 'curriculo.pdf') => {
     try {
+      console.log('🔍 Procurando elemento com ID:', elementId);
       const element = document.getElementById(elementId);
+      
       if (!element) {
-        throw new Error('Elemento não encontrado');
+        console.error('❌ Elemento não encontrado no DOM');
+        console.log('🔎 Elementos disponíveis:', Array.from(document.querySelectorAll('[id]')).map(el => el.id));
+        throw new Error(`Elemento com ID "${elementId}" não encontrado no DOM`);
+      }
+
+      console.log('✅ Elemento encontrado!');
+      console.log('📐 Dimensões do elemento:', {
+        width: element.offsetWidth,
+        height: element.offsetHeight,
+        scrollHeight: element.scrollHeight,
+        isVisible: element.offsetParent !== null
+      });
+
+      // Verificar se o elemento está visível
+      if (element.offsetParent === null) {
+        console.warn('⚠️ Elemento pode não estar visível');
       }
 
       // Salvar estilos originais
@@ -32,237 +49,147 @@ export const usePDFGenerator = () => {
         box-shadow: none !important;
         overflow: visible !important;
         min-height: auto !important;
+        position: relative !important;
+        display: block !important;
       `;
 
       // Aguardar um momento para aplicação dos estilos
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Capturar elemento com configurações otimizadas
+      // Forçar reflow se necessário
+      element.style.display = 'none';
+      element.offsetHeight; // trigger reflow
+      element.style.display = 'block';
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Capturar elemento com configurações otimizadas para captura completa
       const canvas = await html2canvas(element, {
-        scale: 1.5,
+        scale: 1.5, // Reduzir scale para evitar problemas de memória
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        width: 800,
-        height: element.scrollHeight,
-        scrollX: 0,
-        scrollY: 0,
-        logging: false,
-        onclone: (clonedDoc) => {
+        logging: true,
+        foreignObjectRendering: false,
+        removeContainer: true,
+        imageTimeout: 15000,
+        width: element.scrollWidth, // Usar scrollWidth para capturar tudo
+        height: element.scrollHeight, // Usar scrollHeight para capturar tudo
+        windowWidth: 800, // Forçar largura específica
+        windowHeight: element.scrollHeight + 100, // Altura extra para segurança
+        onclone: (clonedDoc: Document) => {
           const clonedElement = clonedDoc.getElementById(elementId);
           if (clonedElement) {
-            // Garantir que todo o conteúdo seja visível
+            // Aplicar estilos que garantem captura completa
             clonedElement.style.width = '800px';
+            clonedElement.style.minWidth = '800px';
             clonedElement.style.maxWidth = '800px';
+            clonedElement.style.padding = '20px';
+            clonedElement.style.margin = '0';
+            clonedElement.style.backgroundColor = '#ffffff';
+            clonedElement.style.fontFamily = 'system-ui, -apple-system, sans-serif';
             clonedElement.style.overflow = 'visible';
+            clonedElement.style.height = 'auto';
             clonedElement.style.minHeight = 'auto';
-            clonedElement.style.transform = 'none';
-            clonedElement.style.position = 'static';
             
-            // Resetar todos os elementos para garantir renderização correta
+            // Garantir que todos os elementos sejam visíveis
             const allElements = clonedElement.querySelectorAll('*');
-            allElements.forEach(el => {
+            allElements.forEach((el: Element) => {
               const element = el as HTMLElement;
-              
-              // Garantir que truncate não interfira
-              if (element.classList.contains('truncate')) {
-                element.style.overflow = 'visible';
-                element.style.textOverflow = 'clip';
-                element.style.whiteSpace = 'normal';
-              }
-              
-              // Garantir break-words
-              if (element.classList.contains('break-words')) {
-                element.style.wordBreak = 'break-word';
-                element.style.overflowWrap = 'break-word';
-              }
+              element.style.overflow = 'visible';
+              element.style.textOverflow = 'clip';
+              element.style.whiteSpace = 'normal';
+              element.style.wordWrap = 'break-word';
+              element.style.maxWidth = 'none';
+              element.style.maxHeight = 'none';
             });
-            
-            // **CORREÇÃO ESPECÍFICA DO CABEÇALHO**
-            const headerSection = clonedElement.querySelector('.border-b-2');
-            if (headerSection) {
-              const header = headerSection as HTMLElement;
-              header.style.display = 'block';
-              header.style.width = '100%';
-              header.style.paddingBottom = '16px';
-              header.style.marginBottom = '24px';
-              header.style.borderBottom = '2px solid #2563eb';
-              header.style.pageBreakAfter = 'avoid';
+
+            // **CORREÇÃO ESPECÍFICA PARA LAYOUT LADO A LADO NO RESUMEPREVIEW**
+            // Detectar o grid específico que contém Habilidades e Idiomas
+            const skillsLanguagesGrid = clonedElement.querySelector('.grid.grid-cols-1.lg\\:grid-cols-2');
+            if (skillsLanguagesGrid) {
+              const grid = skillsLanguagesGrid as HTMLElement;
               
-              // Encontrar o container flex principal
-              const flexContainer = header.querySelector('.flex');
-              if (flexContainer) {
-                const flex = flexContainer as HTMLElement;
-                
-                // **FORÇAR LAYOUT SIMPLES PARA PDF**
-                flex.style.display = 'block';
-                flex.style.width = '100%';
-                flex.style.position = 'relative';
-                
-                // Tratar a foto
-                const photoDiv = flex.querySelector('.flex-shrink-0');
-                if (photoDiv) {
-                  const photo = photoDiv as HTMLElement;
-                  photo.style.float = 'left';
-                  photo.style.marginRight = '16px';
-                  photo.style.marginBottom = '8px';
-                  
-                  const img = photo.querySelector('img');
-                  if (img) {
-                    (img as HTMLElement).style.width = '80px';
-                    (img as HTMLElement).style.height = '80px';
-                    (img as HTMLElement).style.borderRadius = '50%';
-                    (img as HTMLElement).style.objectFit = 'cover';
-                    (img as HTMLElement).style.border = '2px solid #e5e7eb';
-                    (img as HTMLElement).style.display = 'block';
-                  }
-                }
-                
-                // Tratar as informações
-                const infoDiv = flex.querySelector('.flex-1');
-                if (infoDiv) {
-                  const info = infoDiv as HTMLElement;
-                  info.style.display = 'block';
-                  info.style.marginLeft = '96px'; // Largura da foto + gap
-                  info.style.width = 'auto';
-                  
-                  // Corrigir o título
-                  const title = info.querySelector('h1');
-                  if (title) {
-                    (title as HTMLElement).style.fontSize = '22px';
-                    (title as HTMLElement).style.fontWeight = 'bold';
-                    (title as HTMLElement).style.color = '#1f2937';
-                    (title as HTMLElement).style.marginBottom = '8px';
-                    (title as HTMLElement).style.lineHeight = '1.2';
-                    (title as HTMLElement).style.display = 'block';
-                    (title as HTMLElement).style.width = '100%';
-                  }
-                  
-                  // **RECRIAR O GRID DE CONTATOS MANUALMENTE**
-                  const contactGrid = info.querySelector('.grid');
-                  if (contactGrid) {
-                    const grid = contactGrid as HTMLElement;
-                    grid.style.display = 'block';
-                    grid.style.width = '100%';
-                    grid.style.marginTop = '8px';
-                    
-                    // Pegar todos os itens de contato
-                    const contactItems = Array.from(grid.querySelectorAll('.flex'));
-                    
-                    // Limpar o grid e recriar manualmente
-                    grid.innerHTML = '';
-                    
-                    // Criar duas colunas manualmente
-                    const leftColumn = clonedDoc.createElement('div');
-                    leftColumn.style.float = 'left';
-                    leftColumn.style.width = '48%';
-                    leftColumn.style.marginRight = '4%';
-                    
-                    const rightColumn = clonedDoc.createElement('div');
-                    rightColumn.style.float = 'left';
-                    rightColumn.style.width = '48%';
-                    
-                    contactItems.forEach((item, index) => {
-                      const contactDiv = clonedDoc.createElement('div');
-                      contactDiv.style.display = 'block';
-                      contactDiv.style.marginBottom = '4px';
-                      contactDiv.style.fontSize = '11px';
-                      contactDiv.style.color = '#6b7280';
-                      contactDiv.style.lineHeight = '1.3';
-                      
-                      // Copiar o conteúdo do item original
-                      contactDiv.innerHTML = item.innerHTML;
-                      
-                      // Corrigir ícones dentro do item
-                      const icon = contactDiv.querySelector('svg');
-                      if (icon) {
-                        (icon as unknown as HTMLElement).style.width = '12px';
-                        (icon as unknown as HTMLElement).style.height = '12px';
-                        (icon as unknown as HTMLElement).style.verticalAlign = 'middle';
-                        (icon as unknown as HTMLElement).style.marginRight = '6px';
-                        (icon as unknown as HTMLElement).style.color = '#3b82f6';
-                      }
-                      
-                      const span = contactDiv.querySelector('span');
-                      if (span) {
-                        (span as HTMLElement).style.verticalAlign = 'middle';
-                        (span as HTMLElement).style.wordBreak = 'break-all';
-                      }
-                      
-                      // Alternar entre colunas
-                      if (index % 2 === 0) {
-                        leftColumn.appendChild(contactDiv);
-                      } else {
-                        rightColumn.appendChild(contactDiv);
-                      }
-                    });
-                    
-                    grid.appendChild(leftColumn);
-                    grid.appendChild(rightColumn);
-                    
-                    // Clearfix
-                    const clearfix = clonedDoc.createElement('div');
-                    clearfix.style.clear = 'both';
-                    grid.appendChild(clearfix);
-                  }
-                  
-                  // Corrigir resumo se existir
-                  const summaryDiv = info.querySelector('div:has(p)');
-                  if (summaryDiv) {
-                    const summary = summaryDiv.querySelector('p');
-                    if (summary && summary.textContent) {
-                      (summaryDiv as HTMLElement).style.clear = 'both';
-                      (summaryDiv as HTMLElement).style.marginTop = '12px';
-                      (summary as HTMLElement).style.fontSize = '11px';
-                      (summary as HTMLElement).style.color = '#374151';
-                      (summary as HTMLElement).style.lineHeight = '1.4';
-                    }
-                  }
-                }
-                
-                // Clearfix para o cabeçalho
-                const clearfix = clonedDoc.createElement('div');
-                clearfix.style.clear = 'both';
-                flex.appendChild(clearfix);
+              // Forçar layout de duas colunas para PDF
+              grid.style.display = 'grid';
+              grid.style.gridTemplateColumns = '1fr 1fr';
+              grid.style.gap = '24px';
+              grid.style.width = '100%';
+              
+              console.log('📋 Grid Skills/Languages encontrado e ajustado para PDF');
+              
+              // Garantir que os itens filhos (seções) não quebrem
+              const sections = grid.children;
+              for (let i = 0; i < sections.length; i++) {
+                const section = sections[i] as HTMLElement;
+                section.style.breakInside = 'avoid';
+                section.style.pageBreakInside = 'avoid';
+                section.style.overflow = 'visible';
               }
             }
-            
-            // Ajustar outras seções
-            const h2s = clonedElement.querySelectorAll('h2');
-            h2s.forEach(h2 => {
-              (h2 as HTMLElement).style.fontSize = '15px';
-              (h2 as HTMLElement).style.fontWeight = 'bold';
-              (h2 as HTMLElement).style.color = '#1f2937';
-              (h2 as HTMLElement).style.marginBottom = '10px';
-              (h2 as HTMLElement).style.marginTop = '16px';
-              (h2 as HTMLElement).style.borderLeft = '4px solid #3b82f6';
-              (h2 as HTMLElement).style.paddingLeft = '12px';
-            });
 
-            const h3s = clonedElement.querySelectorAll('h3');
-            h3s.forEach(h3 => {
-              (h3 as HTMLElement).style.fontSize = '13px';
-              (h3 as HTMLElement).style.marginBottom = '4px';
-              (h3 as HTMLElement).style.lineHeight = '1.3';
-            });
-
-            const paragraphs = clonedElement.querySelectorAll('p');
-            paragraphs.forEach(p => {
-              if (!(p as HTMLElement).closest('h1, h2, h3')) {
-                (p as HTMLElement).style.fontSize = '11px';
-                (p as HTMLElement).style.lineHeight = '1.4';
+            // **CORREÇÃO GENÉRICA PARA GRIDS RESPONSIVOS**
+            const responsiveGrids = clonedElement.querySelectorAll('.grid');
+            responsiveGrids.forEach((gridContainer: Element) => {
+              const grid = gridContainer as HTMLElement;
+              
+              // Verificar se className existe e é uma string antes de usar includes
+              if (grid.className && typeof grid.className === 'string') {
+                // Se o grid tem classes que indicam layout responsivo, forçar comportamento desktop
+                if (grid.className.includes('lg:grid-cols-2') || 
+                    grid.className.includes('md:grid-cols-2') ||
+                    grid.className.includes('print:grid-cols-2')) {
+                  
+                  grid.style.display = 'grid';
+                  grid.style.gridTemplateColumns = '1fr 1fr';
+                  grid.style.gap = '24px';
+                  grid.style.width = '100%';
+                  
+                  console.log('📐 Grid responsivo ajustado:', grid.className);
+                  
+                  // Garantir que os itens filhos não quebrem o layout
+                  const gridItems = grid.children;
+                  for (let i = 0; i < gridItems.length; i++) {
+                    const item = gridItems[i] as HTMLElement;
+                    item.style.breakInside = 'avoid';
+                    item.style.pageBreakInside = 'avoid';
+                    item.style.overflow = 'visible';
+                  }
+                }
               }
             });
 
-            // Compactar seções
-            const sections = clonedElement.querySelectorAll('section');
-            sections.forEach(section => {
-              (section as HTMLElement).style.marginBottom = '14px';
-              (section as HTMLElement).style.pageBreakInside = 'avoid';
+            // **FORÇA ESTILOS PRINT/PDF PARA TODOS OS ELEMENTOS**
+            // Garantir que todas as classes print: sejam aplicadas
+            const printElements = clonedElement.querySelectorAll('[class*="print:"]');
+            printElements.forEach((element: Element) => {
+              const el = element as HTMLElement;
+              
+              // Verificar se className existe e é uma string
+              if (el.className && typeof el.className === 'string') {
+                // Forçar aplicação das classes print no PDF
+                if (el.className.includes('print:grid-cols-2')) {
+                  el.style.gridTemplateColumns = '1fr 1fr';
+                }
+                if (el.className.includes('print:gap-4')) {
+                  el.style.gap = '1rem';
+                }
+              }
             });
+
+            console.log('🎨 Ajustes de layout concluídos para PDF');
           }
         }
       });
+
+      console.log('🖼️ Canvas gerado:', {
+        width: canvas.width,
+        height: canvas.height,
+        isEmpty: canvas.width === 0 || canvas.height === 0
+      });
+
+      if (canvas.width === 0 || canvas.height === 0) {
+        throw new Error('Canvas vazio - elemento não foi capturado corretamente');
+      }
 
       // Restaurar estilos originais
       element.style.cssText = originalStyle;
@@ -270,42 +197,109 @@ export const usePDFGenerator = () => {
         element.parentElement.style.transform = originalTransform;
       }
 
-      // Gerar PDF
-      const imgData = canvas.toDataURL('image/png', 0.9);
+      // Gerar PDF com ajustes para conteúdo completo
+      const imgData = canvas.toDataURL('image/png', 0.95);
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
-        format: 'a4'
+        format: 'a4',
+        compress: true
       });
 
-      const pdfWidth = 210;
-      const pdfHeight = 297;
-      const margin = 10;
-      
-      const imgWidth = pdfWidth - (margin * 2);
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      console.log('📄 Gerando PDF...');
 
-      if (imgHeight <= pdfHeight - (margin * 2)) {
-        // Cabe em uma página
-        pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
-      } else {
-        // Dividir em duas páginas
-        const firstPageHeight = pdfHeight - (margin * 2);
+      const pdfWidth = 210; // A4 width em mm
+      const pdfHeight = 297; // A4 height em mm
+      const margin = 8; // Margens menores para aproveitar mais espaço
+      
+      const availableWidth = pdfWidth - (margin * 2);
+      const availableHeight = pdfHeight - (margin * 2);
+      
+      // Calcular proporções mantendo aspect ratio
+      const canvasAspectRatio = canvas.height / canvas.width;
+      let imgWidth = availableWidth;
+      let imgHeight = imgWidth * canvasAspectRatio;
+
+      console.log('📏 Dimensões calculadas:', {
+        canvasWidth: canvas.width,
+        canvasHeight: canvas.height,
+        aspectRatio: canvasAspectRatio,
+        pdfWidth,
+        pdfHeight,
+        imgWidth,
+        imgHeight,
+        availableHeight,
+        needsResize: imgHeight > availableHeight
+      });
+
+      // Se a altura for maior que o disponível, ajustar baseado na altura
+      if (imgHeight > availableHeight) {
+        imgHeight = availableHeight;
+        imgWidth = imgHeight / canvasAspectRatio;
         
-        // Primeira página
-        pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, firstPageHeight);
-        
-        // Segunda página
-        pdf.addPage();
-        const offsetY = margin - firstPageHeight;
-        pdf.addImage(imgData, 'PNG', margin, offsetY, imgWidth, imgHeight);
+        // Se ainda assim a largura for maior, usar múltiplas páginas
+        if (imgWidth > availableWidth) {
+          imgWidth = availableWidth;
+          imgHeight = imgWidth * canvasAspectRatio;
+        }
       }
 
+      // Centralizar horizontalmente se necessário
+      const xOffset = margin + (availableWidth - imgWidth) / 2;
+
+      console.log('📐 Posicionamento final:', {
+        xOffset,
+        yOffset: margin,
+        finalWidth: imgWidth,
+        finalHeight: imgHeight,
+        fitsInOnePage: imgHeight <= availableHeight
+      });
+
+      if (imgHeight <= availableHeight) {
+        // Cabe em uma página
+        pdf.addImage(imgData, 'PNG', xOffset, margin, imgWidth, imgHeight);
+      } else {
+        // Dividir em páginas proporcionalmente
+        const pagesNeeded = Math.ceil(imgHeight / availableHeight);
+        
+        for (let page = 0; page < pagesNeeded; page++) {
+          if (page > 0) {
+            pdf.addPage();
+          }
+          
+          const sourceY = (page * availableHeight / imgHeight) * canvas.height;
+          const sourceHeight = Math.min(
+            (availableHeight / imgHeight) * canvas.height,
+            canvas.height - sourceY
+          );
+          
+          // Criar canvas para esta página específica
+          const pageCanvas = document.createElement('canvas');
+          const pageCtx = pageCanvas.getContext('2d');
+          pageCanvas.width = canvas.width;
+          pageCanvas.height = sourceHeight;
+          
+          if (pageCtx) {
+            pageCtx.drawImage(
+              canvas,
+              0, sourceY, canvas.width, sourceHeight,
+              0, 0, canvas.width, sourceHeight
+            );
+            
+            const pageImgData = pageCanvas.toDataURL('image/png', 0.95);
+            const pageImgHeight = (sourceHeight / canvas.height) * imgHeight;
+            
+            pdf.addImage(pageImgData, 'PNG', xOffset, margin, imgWidth, pageImgHeight);
+          }
+        }
+      }
+
+      console.log('✅ PDF gerado com sucesso!');
       pdf.save(filename);
       
       return { success: true };
     } catch (error) {
-      console.error('Erro ao gerar PDF:', error);
+      console.error('❌ Erro ao gerar PDF:', error);
       return { success: false, error: error as Error };
     }
   }, []);

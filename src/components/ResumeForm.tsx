@@ -1,6 +1,7 @@
 import { useForm, useFieldArray } from 'react-hook-form';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Palette, Check } from 'lucide-react';
 import type { ResumeData } from '../types/resume';
+import { themes } from '../types/resume';
 import PhotoUpload from './PhotoUpload';
 import InlinePromo from './ads/InlinePromo';
 import { useEffect } from 'react';
@@ -103,6 +104,113 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ data, onChange }) => {
 
   return (
     <div className="space-y-6 sm:space-y-8">
+      {/* Seletor de Temas */}
+      <section className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
+        <div className="flex items-center gap-2 mb-4">
+          <Palette className="w-5 h-5 text-gray-700" />
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Tema do Currículo</h2>
+        </div>
+        
+        <p className="text-sm text-gray-600 mb-6">
+          Escolha um tema que combine com sua área profissional e personalidade.
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {themes.map((theme) => (
+            <div
+              key={theme.id}
+              className={`
+                relative border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 hover:shadow-md
+                ${(watchedData.theme || 'classic') === theme.id 
+                  ? 'border-blue-500 bg-blue-50' 
+                  : 'border-gray-200 hover:border-gray-300'
+                }
+              `}
+              onClick={() => setValue('theme', theme.id)}
+            >
+              {/* Check icon for selected theme */}
+              {(watchedData.theme || 'classic') === theme.id && (
+                <div className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                  <Check className="w-4 h-4 text-white" />
+                </div>
+              )}
+
+              {/* Theme preview */}
+              <div className="mb-3">
+                <div 
+                  className="w-full h-20 rounded-md border"
+                  style={{ 
+                    background: `linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.accent} 100%)` 
+                  }}
+                >
+                  <div className="flex items-center justify-center h-full">
+                    <div 
+                      className="w-12 h-12 rounded-full border-2"
+                      style={{ 
+                        backgroundColor: theme.colors.background,
+                        borderColor: theme.colors.border 
+                      }}
+                    ></div>
+                  </div>
+                </div>
+                
+                {/* Color palette preview */}
+                <div className="flex gap-1 mt-2">
+                  <div 
+                    className="w-4 h-4 rounded-full border"
+                    style={{ backgroundColor: theme.colors.primary }}
+                    title="Cor primária"
+                  ></div>
+                  <div 
+                    className="w-4 h-4 rounded-full border"
+                    style={{ backgroundColor: theme.colors.accent }}
+                    title="Cor de destaque"
+                  ></div>
+                  <div 
+                    className="w-4 h-4 rounded-full border"
+                    style={{ backgroundColor: theme.colors.secondary }}
+                    title="Cor secundária"
+                  ></div>
+                </div>
+              </div>
+
+              {/* Theme info */}
+              <div>
+                <h3 className="font-semibold text-gray-800 mb-1">{theme.name}</h3>
+                <p className="text-xs text-gray-600 leading-relaxed">{theme.description}</p>
+                
+                {/* Style indicators */}
+                <div className="flex gap-1 mt-2">
+                  <span 
+                    className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-600"
+                    title={`Fonte: ${theme.fonts.heading}`}
+                  >
+                    {theme.fonts.heading === 'serif' ? 'Serif' : 'Sans-serif'}
+                  </span>
+                  <span 
+                    className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-600"
+                    title={`Espaçamento: ${theme.styles.spacing}`}
+                  >
+                    {theme.styles.spacing === 'compact' ? 'Compacto' : 
+                     theme.styles.spacing === 'spacious' ? 'Espaçoso' : 'Normal'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Theme details for selected theme */}
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+          <h3 className="font-semibold text-gray-800 mb-2">
+            Tema Selecionado: {themes.find(t => t.id === (watchedData.theme || 'classic'))?.name}
+          </h3>
+          <p className="text-sm text-gray-600">
+            {themes.find(t => t.id === (watchedData.theme || 'classic'))?.description}
+          </p>
+        </div>
+      </section>
+
       {/* Informações Pessoais */}
       <section className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border">
         <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-800">Informações Pessoais</h2>
