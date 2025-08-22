@@ -38,7 +38,7 @@ export interface Skill {
 export interface Language {
   id: string;
   name: string;
-  level: string; // Beginner, Intermediate, Advanced, Native
+  level: string; // Iniciante, Intermediário, Avançado, Nativo
 }
 
 export interface ResumeData {

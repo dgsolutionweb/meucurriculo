@@ -93,7 +93,7 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ data, onChange }) => {
     appendLanguage({
       id: Date.now().toString(),
       name: '',
-      level: 'Intermediate'
+      level: 'Intermediário'
     });
   };
 
@@ -437,10 +437,10 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ data, onChange }) => {
                     {...register(`languages.${index}.level`)}
                     className="input"
                   >
-                    <option value="Beginner">Iniciante</option>
-                    <option value="Intermediate">Intermediário</option>
-                    <option value="Advanced">Avançado</option>
-                    <option value="Native">Nativo</option>
+                    <option value="Iniciante">Iniciante</option>
+                    <option value="Intermediário">Intermediário</option>
+                    <option value="Avançado">Avançado</option>
+                    <option value="Nativo">Nativo</option>
                   </select>
                 </div>
               </div>
