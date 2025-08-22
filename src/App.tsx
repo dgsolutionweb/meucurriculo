@@ -43,6 +43,7 @@ function App() {
         alert('Erro ao gerar PDF. Tente novamente.');
       }
     } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
       alert('Erro ao gerar PDF. Tente novamente.');
     } finally {
       setIsGeneratingPDF(false);
@@ -133,8 +134,10 @@ function App() {
               </p>
             </div>
             
-            <div className="transform scale-75 sm:scale-90 lg:scale-100 origin-top">
-              <ResumePreview data={resumeData} />
+            <div className="w-full overflow-x-auto">
+              <div className="min-w-[800px] mx-auto">
+                <ResumePreview data={resumeData} />
+              </div>
             </div>
           </div>
         )}

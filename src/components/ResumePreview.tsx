@@ -21,11 +21,11 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data }) => {
 
   const renderSkillLevel = (level: number) => {
     return (
-      <div className="flex space-x-1">
+      <div className="flex space-x-0.5 print:space-x-0.5">
         {[1, 2, 3, 4, 5].map((i) => (
           <div
             key={i}
-            className={`w-3 h-3 rounded-full ${
+            className={`w-2.5 h-2.5 print:w-2 print:h-2 rounded-full ${
               i <= level ? 'bg-primary-600' : 'bg-gray-200'
             }`}
           />
@@ -35,90 +35,94 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data }) => {
   };
 
   return (
-    <div id="resume-preview" className="bg-white p-8 shadow-lg rounded-lg max-w-4xl mx-auto">
+    <div id="resume-preview" className="bg-white shadow-lg rounded-lg w-full max-w-4xl mx-auto p-6 print:shadow-none print:rounded-none pdf-optimized" style={{ pageBreakInside: 'avoid' }}>
       {/* Header */}
-      <div className="border-b-2 border-primary-600 pb-6 mb-6">
-        <div className="flex items-start space-x-6">
+      <div className="border-b-2 border-primary-600 pb-4 mb-6 print:pb-3 print:mb-3" style={{ pageBreakAfter: 'avoid' }}>
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 print:gap-3">
           {personalInfo.photo && (
-            <img
-              src={personalInfo.photo}
-              alt="Profile"
-              className="w-24 h-24 rounded-full object-cover border-4 border-gray-200"
-            />
+            <div className="flex-shrink-0 text-center sm:text-left">
+              <img
+                src={personalInfo.photo}
+                alt="Profile"
+                className="w-20 h-20 print:w-16 print:h-16 rounded-full object-cover border-2 border-gray-200 mx-auto sm:mx-0"
+              />
+            </div>
           )}
           
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          <div className="flex-1 min-w-0 w-full text-center sm:text-left">
+            <h1 className="text-2xl sm:text-3xl print:text-xl font-bold text-gray-800 mb-2 print:mb-1 break-words">
               {personalInfo.fullName || 'Seu Nome'}
             </h1>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 print:gap-1 text-sm print:text-xs text-gray-600">
               {personalInfo.email && (
-                <div className="flex items-center space-x-2">
-                  <Mail size={14} />
-                  <span>{personalInfo.email}</span>
+                <div className="flex items-center gap-2 print:gap-1 justify-center sm:justify-start">
+                  <Mail size={14} className="flex-shrink-0 print:w-3 print:h-3" />
+                  <span className="truncate">{personalInfo.email}</span>
                 </div>
               )}
               
               {personalInfo.phone && (
-                <div className="flex items-center space-x-2">
-                  <Phone size={14} />
-                  <span>{personalInfo.phone}</span>
+                <div className="flex items-center gap-2 print:gap-1 justify-center sm:justify-start">
+                  <Phone size={14} className="flex-shrink-0 print:w-3 print:h-3" />
+                  <span className="truncate">{personalInfo.phone}</span>
                 </div>
               )}
               
               {personalInfo.address && (
-                <div className="flex items-center space-x-2">
-                  <MapPin size={14} />
-                  <span>{personalInfo.address}</span>
+                <div className="flex items-center gap-2 print:gap-1 justify-center sm:justify-start">
+                  <MapPin size={14} className="flex-shrink-0 print:w-3 print:h-3" />
+                  <span className="truncate">{personalInfo.address}</span>
                 </div>
               )}
               
               {personalInfo.linkedin && (
-                <div className="flex items-center space-x-2">
-                  <Linkedin size={14} />
-                  <span>{personalInfo.linkedin}</span>
+                <div className="flex items-center gap-2 print:gap-1 justify-center sm:justify-start">
+                  <Linkedin size={14} className="flex-shrink-0 print:w-3 print:h-3" />
+                  <span className="truncate">{personalInfo.linkedin}</span>
                 </div>
               )}
               
               {personalInfo.website && (
-                <div className="flex items-center space-x-2">
-                  <Globe size={14} />
-                  <span>{personalInfo.website}</span>
+                <div className="flex items-center gap-2 print:gap-1 sm:col-span-2 justify-center sm:justify-start">
+                  <Globe size={14} className="flex-shrink-0 print:w-3 print:h-3" />
+                  <span className="truncate">{personalInfo.website}</span>
                 </div>
               )}
             </div>
+            
+            {personalInfo.summary && (
+              <div className="mt-4 print:mt-2">
+                <p className="text-gray-700 text-sm print:text-xs leading-relaxed print:leading-snug">
+                  {personalInfo.summary}
+                </p>
+              </div>
+            )}
           </div>
         </div>
-        
-        {personalInfo.summary && (
-          <p className="mt-4 text-gray-700 leading-relaxed">
-            {personalInfo.summary}
-          </p>
-        )}
       </div>
 
       {/* Experience */}
       {experience.length > 0 && (
-        <section className="mb-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-4 border-l-4 border-primary-600 pl-3">
+        <section className="mb-6 print:mb-4" style={{ pageBreakInside: 'avoid' }}>
+          <h2 className="text-xl print:text-base font-bold text-gray-800 mb-4 print:mb-2 border-l-4 border-primary-600 pl-3 print:pl-2">
             EXPERIÊNCIA PROFISSIONAL
           </h2>
           
-          <div className="space-y-4">
+          <div className="space-y-4 print:space-y-2">
             {experience.map((exp) => (
-              <div key={exp.id} className="border-l-2 border-gray-200 pl-4">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h3 className="font-semibold text-gray-800">{exp.position}</h3>
-                    <p className="text-primary-600 font-medium">{exp.company}</p>
+              <div key={exp.id} className="border-l-2 border-gray-200 pl-4 print:pl-2" style={{ pageBreakInside: 'avoid' }}>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1 mb-2 print:mb-1">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-800 text-base print:text-sm break-words">{exp.position}</h3>
+                    <p className="text-primary-600 font-medium text-sm print:text-xs break-words">{exp.company}</p>
                   </div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm print:text-xs text-gray-500 whitespace-nowrap">
                     {formatDate(exp.startDate)} - {exp.current ? 'Atual' : formatDate(exp.endDate)}
                   </div>
                 </div>
                 {exp.description && (
-                  <p className="text-gray-700 text-sm leading-relaxed">
+                  <p className="text-gray-700 text-sm print:text-xs leading-relaxed print:leading-snug break-words">
                     {exp.description}
                   </p>
                 )}
@@ -130,22 +134,22 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data }) => {
 
       {/* Education */}
       {education.length > 0 && (
-        <section className="mb-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-4 border-l-4 border-primary-600 pl-3">
+        <section className="mb-6 print:mb-4" style={{ pageBreakInside: 'avoid' }}>
+          <h2 className="text-xl print:text-base font-bold text-gray-800 mb-4 print:mb-2 border-l-4 border-primary-600 pl-3 print:pl-2">
             EDUCAÇÃO
           </h2>
           
-          <div className="space-y-3">
+          <div className="space-y-3 print:space-y-2">
             {education.map((edu) => (
-              <div key={edu.id} className="border-l-2 border-gray-200 pl-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-semibold text-gray-800">
+              <div key={edu.id} className="border-l-2 border-gray-200 pl-4 print:pl-2" style={{ pageBreakInside: 'avoid' }}>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-800 text-base print:text-sm break-words">
                       {edu.degree} em {edu.field}
                     </h3>
-                    <p className="text-primary-600">{edu.institution}</p>
+                    <p className="text-primary-600 text-sm print:text-xs break-words">{edu.institution}</p>
                   </div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm print:text-xs text-gray-500 whitespace-nowrap">
                     {edu.endDate}
                   </div>
                 </div>
@@ -155,19 +159,20 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data }) => {
         </section>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Skills and Languages in Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print:gap-4 print:grid-cols-2">
         {/* Skills */}
         {skills.length > 0 && (
-          <section>
-            <h2 className="text-xl font-bold text-gray-800 mb-4 border-l-4 border-primary-600 pl-3">
+          <section style={{ pageBreakInside: 'avoid' }}>
+            <h2 className="text-xl print:text-base font-bold text-gray-800 mb-4 print:mb-2 border-l-4 border-primary-600 pl-3 print:pl-2">
               HABILIDADES
             </h2>
             
-            <div className="space-y-3">
+            <div className="space-y-3 print:space-y-2">
               {skills.map((skill) => (
                 <div key={skill.id} className="flex justify-between items-center">
-                  <span className="text-gray-700 font-medium">{skill.name}</span>
-                  {renderSkillLevel(skill.level)}
+                  <span className="text-gray-700 font-medium text-sm print:text-xs break-words flex-1 min-w-0 mr-3">{skill.name}</span>
+                  <div className="flex-shrink-0">{renderSkillLevel(skill.level)}</div>
                 </div>
               ))}
             </div>
@@ -176,16 +181,16 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data }) => {
 
         {/* Languages */}
         {languages.length > 0 && (
-          <section>
-            <h2 className="text-xl font-bold text-gray-800 mb-4 border-l-4 border-primary-600 pl-3">
+          <section style={{ pageBreakInside: 'avoid' }}>
+            <h2 className="text-xl print:text-base font-bold text-gray-800 mb-4 print:mb-2 border-l-4 border-primary-600 pl-3 print:pl-2">
               IDIOMAS
             </h2>
             
-            <div className="space-y-2">
+            <div className="space-y-3 print:space-y-2">
               {languages.map((lang) => (
-                <div key={lang.id} className="flex justify-between">
-                  <span className="text-gray-700 font-medium">{lang.name}</span>
-                  <span className="text-gray-500 text-sm">{lang.level}</span>
+                <div key={lang.id} className="flex justify-between items-center">
+                  <span className="text-gray-700 font-medium text-sm print:text-xs break-words flex-1 min-w-0 mr-3">{lang.name}</span>
+                  <span className="text-gray-500 text-sm print:text-xs flex-shrink-0">{lang.level}</span>
                 </div>
               ))}
             </div>
